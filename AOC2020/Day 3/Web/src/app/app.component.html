@@ -1,0 +1,11 @@
+<div class="container">
+  <div class="line" *ngFor="let line of lines">
+    <div class="square" *ngFor="let item of line"
+        [ngClass]="item === '#' ? 'square--tree' : 'square--snow'"
+    ></div>
+  </div>
+</div>
+<div class="counter">Trees clonked on this run: {{treesClonked}}
+  <div *ngFor="let number of treesClonkedOnEachRun">{{number}}</div>
+  <div *ngIf="totalTreesClonked > 0">Product of trees clonked on each run: {{totalTreesClonked}}</div>
+</div>

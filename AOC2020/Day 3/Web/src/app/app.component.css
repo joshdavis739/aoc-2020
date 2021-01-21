@@ -1,0 +1,39 @@
+.line > * {
+  display: inline-block;
+}
+
+.container {
+  display: inline-block;
+}
+.counter {
+  position: absolute;
+  top: 16px;;
+  right: 60px;
+}
+
+.square {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid black;
+}
+
+.square + .square {
+  margin-left: 4px;
+}
+
+.square--snow  {
+  background-color: white;
+}
+
+.square--tree  {
+  background-color: green;
+}
+
+.square--bloody {
+  background-color: red !important;
+}
+
+.square--trampled {
+  background-color: lightgrey !important;
+}

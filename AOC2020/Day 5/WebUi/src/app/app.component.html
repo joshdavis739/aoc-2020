@@ -1,0 +1,13 @@
+<div class="container">
+  <div class="line" *ngFor="let row of rows">
+    <ng-container *ngTemplateOutlet="line; context: {row: row}"></ng-container>
+  </div>
+</div>
+
+<ng-template #line let-row="row">
+  <div class="square"
+    *ngFor="let item of row as Seat"
+    [title]="'Seat ID: ' + item.stringValue + '. Seat value: ' + item.seatValue"
+    [ngClass]="{'square--populated' : item.isPopulated, 'square--highest':item.seatValue == this.bestSeat.seatValue}"
+  ></div>
+</ng-template>
