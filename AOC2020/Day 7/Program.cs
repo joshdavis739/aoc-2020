@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Running;
 
 namespace Day_7
 {
@@ -8,14 +10,51 @@ namespace Day_7
     // This was completed several hours past my bedtime, and was hacked together after several attempts to code cleanly.
     // I apologise for whoever has to read this in the future.
     // Effectively, the idea is to build up a tree structure, where each branch is assigned a number, showing how many child bags the parent can contain.
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public Program()
         {
-            var input = Inputs.BigString.Split("\r\n");
+            _goldNodeBenchmark = GetGoldNode();
+        }
+
+        private (Node, int) _goldNodeBenchmark { get; set; }
+
+        [Params(Inputs.SmallString, null)]
+        public string _inputStringBenchmark { get; set; }
+
+        [Benchmark]
+        public void GetGoldNodeBenchmark() => GetGoldNode(_inputStringBenchmark);
+
+        [Benchmark]
+        public void GetNParentsBenchmark() => GetNParents(_goldNodeBenchmark.Item1);
+
+        [Benchmark]
+        public void GetNumberOfKidsBenchmark() => GetNumberOfKids(_goldNodeBenchmark.Item1);
+
+        public static void Main(string[] args)
+        {
+            BenchmarkRunner.Run<Program>();
+
+            var goldNode = GetGoldNode();
+
+            var count = GetNParents(goldNode.Item1).Distinct().Count();
+            Console.WriteLine($"Part 1 answer: {count}");
+            var count2 = GetNumberOfKids(goldNode.Item1);
+            Console.WriteLine($"Part 2 answer: {count2}");
+        }
+
+        public static (Node,int) GetGoldNode(string input = null)
+        {
+            if (input == null)
+            {
+                input = Inputs.BigString;
+            }
+
+            var descriptors = input.Split("\r\n");
+
             var nodes = new List<(Node, int)>();
 
-            foreach (var descriptor in input)
+            foreach (var descriptor in descriptors)
             {
                 var newNode = LineParser.Parse(descriptor);
 
@@ -37,7 +76,7 @@ namespace Day_7
                             Colour = child.Item1.Colour,
                             Parents = nodes.Where(x => x.Item1.Pattern == parentNode.Item1.Pattern && x.Item1.Colour == parentNode.Item1.Colour)
                         };
-                        
+
                         nodes.Add((newChildNode, child.Item2));
 
                         parentNode.Item1.Children = parentNode.Item1.Children.Append((newChildNode, child.Item2));
@@ -62,15 +101,10 @@ namespace Day_7
 
             var goldNode = nodes.Where(x => x.Item1.Colour == "gold" && x.Item1.Pattern == "shiny").First();
 
-            var count = GetNParents(goldNode.Item1).Distinct().Count();
-            Console.WriteLine($"Part 1 answer: {count}");
-
-            // PART 2
-            var count2 = GetNumberOfKids(goldNode.Item1);
-            Console.WriteLine($"Part 1 answer: {count2}");
+            return goldNode;
         }
 
-        static int GetNumberOfKids(Node node)
+        public static int GetNumberOfKids(Node node)
         {
             var count = 0;
             foreach (var child in node.Children)
@@ -82,7 +116,7 @@ namespace Day_7
             return count;
         }
 
-        static IEnumerable<string> GetNParents(Node node)
+        public static IEnumerable<string> GetNParents(Node node)
         {
             var bagColours = new List<string>();
             if (!node.Parents.Any())
@@ -99,13 +133,13 @@ namespace Day_7
             return bagColours;
         }
 
-        static bool NodeExistsAnywhereInExistingNodeInfrastructure(Node node, IEnumerable<(Node, int)> existingNodes)
+        public static bool NodeExistsAnywhereInExistingNodeInfrastructure(Node node, IEnumerable<(Node, int)> existingNodes)
         {
 
             return existingNodes.Any(x => x.Item1.Colour == node.Colour && x.Item1.Pattern == node.Pattern);
         }
 
-        static IEnumerable<(Node, int)> FindMatchingNodesInNodeInfrastructure(Node node, IEnumerable<(Node, int)> existingNodes)
+        public static IEnumerable<(Node, int)> FindMatchingNodesInNodeInfrastructure(Node node, IEnumerable<(Node, int)> existingNodes)
         {
             var matchingNodes = new List<(Node, int)>();
 
@@ -126,7 +160,7 @@ namespace Day_7
         }
     }
 
-    class Node
+    public class Node
     {
         public IEnumerable<(Node, int)> Children { get; set; } = new List<(Node, int)>();
         public IEnumerable<(Node, int)> Parents { get; set; } = new List<(Node, int)>();
@@ -134,7 +168,7 @@ namespace Day_7
         public string Pattern { get; set; }
     }
 
-    static class LineParser
+    public static class LineParser
     {
         public static Node Parse(string input)
         {
@@ -183,9 +217,9 @@ namespace Day_7
         }
     }
 
-    static class Inputs
+    public static class Inputs
     {
-        public static string SmallString = @"light red bags contain 1 bright white bag, 2 muted yellow bags.
+        public const string SmallString = @"light red bags contain 1 bright white bag, 2 muted yellow bags.
 dark orange bags contain 3 bright white bags, 4 muted yellow bags.
 bright white bags contain 1 shiny gold bag.
 muted yellow bags contain 2 shiny gold bags, 9 faded blue bags.
@@ -195,7 +229,7 @@ vibrant plum bags contain 5 faded blue bags, 6 dotted black bags.
 faded blue bags contain no other bags.
 dotted black bags contain no other bags.";
 
-        public static string OtherString = @"shiny gold bags contain 2 dark red bags.
+        public const string OtherString = @"shiny gold bags contain 2 dark red bags.
 dark red bags contain 2 dark orange bags.
 dark orange bags contain 2 dark yellow bags.
 dark yellow bags contain 2 dark green bags.
@@ -203,7 +237,7 @@ dark green bags contain 2 dark blue bags.
 dark blue bags contain 2 dark violet bags.
 dark violet bags contain no other bags.";
 
-        public static string BigString = @"dull blue bags contain 2 dotted green bags, 1 dull brown bag, 3 striped tomato bags, 5 muted blue bags.
+        public const string BigString = @"dull blue bags contain 2 dotted green bags, 1 dull brown bag, 3 striped tomato bags, 5 muted blue bags.
 dotted cyan bags contain 2 faded lavender bags, 1 drab fuchsia bag, 5 bright blue bags.
 clear magenta bags contain 1 wavy salmon bag, 3 dull lime bags, 2 striped white bags.
 drab white bags contain 1 drab lavender bag, 1 plaid maroon bag.
